@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title th:text="${nombreSistema}">EcoPuntos VES</title>
+    <link rel="stylesheet" th:href="@{/css/estilos.css}">
+</head>
+<body>
+
+<header class="cabecera">
+    <div class="contenedor barra">
+        <span class="marca" th:text="${nombreSistema}">EcoPuntos VES</span>
+        <span class="etiqueta">Proyecto académico</span>
+    </div>
+</header>
+
+<main class="contenedor">
+    <section class="presentacion">
+        <p class="ubicacion">Villa El Salvador · Lima</p>
+
+        <h1>Participación vecinal con información organizada.</h1>
+
+        <p class="descripcion">
+            Registro de reciclables, seguimiento de puntos críticos
+            y administración de incentivos vecinales.
+        </p>
+
+        <p class="aviso">
+            Prototipo en desarrollo. Las operaciones y los beneficios
+            se demostrarán con datos ficticios.
+        </p>
+    </section>
+
+    <section aria-labelledby="titulo-procesos">
+        <h2 id="titulo-procesos">Procesos del proyecto</h2>
+
+        <div class="tarjetas">
+            <article class="tarjeta">
+                <span class="numero">01</span>
+                <h3>Recepción de reciclables</h3>
+                <p>
+                    Registro de entregas por vecino y material,
+                    con cálculo de puntos según el peso recibido.
+                </p>
+            </article>
+
+            <article class="tarjeta">
+                <span class="numero">02</span>
+                <h3>Atención de puntos críticos</h3>
+                <p>
+                    Registro, revisión y seguimiento de reportes
+                    de acumulación de residuos.
+                </p>
+            </article>
+
+            <article class="tarjeta">
+                <span class="numero">03</span>
+                <h3>Canje de puntos</h3>
+                <p>
+                    Consulta del saldo y emisión de constancias
+                    de beneficios simulados.
+                </p>
+            </article>
+        </div>
+    </section>
+</main>
+
+<footer class="contenedor pie">
+    <p>EcoPuntos VES · Lenguajes de Programación II</p>
+    <p>Los beneficios simulados no tienen validez para el pago de arbitrios.</p>
+</footer>
+
+</body>
+</html>
