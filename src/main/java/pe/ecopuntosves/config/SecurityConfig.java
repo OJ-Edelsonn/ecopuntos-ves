@@ -23,6 +23,7 @@ public class SecurityConfig {
                     "/favicon.ico",
                     "/error"
                 ).permitAll()
+                .requestMatchers("/materiales", "/materiales/**").permitAll()
                 .anyRequest().authenticated()
             )
             .formLogin(Customizer.withDefaults());

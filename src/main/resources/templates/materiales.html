@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Materiales | EcoPuntos VES</title>
+    <link rel="stylesheet" th:href="@{/css/estilos.css}">
+    <style>
+        .contenedor-materiales { max-width: 820px; margin: 2rem auto; padding: 1rem; }
+        .tabla-materiales { width: 100%; border-collapse: collapse; }
+        .tabla-materiales th, .tabla-materiales td { padding: .75rem; border-bottom: 1px solid #ddd; text-align: left; }
+    </style>
+</head>
+<body>
+<main class="contenedor-materiales">
+    <h1>Materiales reciclables</h1>
+    <p>Catálogo activo registrado en la base de datos EcoPuntos VES.</p>
+    <table class="tabla-materiales">
+        <thead><tr><th>Código</th><th>Material</th></tr></thead>
+        <tbody>
+            <tr th:each="material : ${materiales}">
+                <td th:text="${material.id}">1</td>
+                <td th:text="${material.nombre}">Plástico</td>
+            </tr>
+            <tr th:if="${#lists.isEmpty(materiales)}">
+                <td colspan="2">No hay materiales activos.</td>
+            </tr>
+        </tbody>
+    </table>
+    <p><a th:href="@{/}">Volver al inicio</a></p>
+</main>
+</body>
+</html>
