@@ -1,0 +1,21 @@
+<!doctype html><html lang="es" xmlns:th="http://www.thymeleaf.org"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Nuevo vecino | EcoPuntos VES</title>
+
+<style>
+  :root {font-family:Arial,sans-serif;color:#1f2937;background:#f4f7f6}
+  body {margin:0} main {max-width:1050px;margin:25px auto;padding:24px;background:white;border-radius:12px;box-shadow:0 2px 14px #0001}
+  h1 {font-size:1.6rem;margin-top:0} h2 {font-size:1.1rem}
+  a {color:#087f5b} nav {display:flex;gap:12px;flex-wrap:wrap;margin:0 0 22px}
+  table {width:100%;border-collapse:collapse} th,td {text-align:left;padding:10px;border-bottom:1px solid #e5e7eb;font-size:14px}
+  th {background:#eaf5ed} label {display:block;margin:12px 0 4px;font-weight:600}
+  input,select {box-sizing:border-box;width:100%;padding:10px;border:1px solid #b9c5c0;border-radius:6px}
+  button,.boton {display:inline-block;width:auto;padding:10px 16px;border:0;border-radius:6px;background:#087f5b;color:#fff;text-decoration:none;cursor:pointer}
+  .alerta {padding:13px;margin:14px 0;border-radius:6px;background:#fff5d7}
+  .error {background:#fee2e2} .campos {display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:12px}
+  .paginacion {display:flex;gap:15px;margin-top:15px} .ayuda {color:#52615c;font-size:14px}
+  form.linea {display:inline} form.linea button {background:#455a64;padding:6px 9px}
+</style>
+</head><body><main><nav><a th:href="@{/vecinos}">Volver a vecinos</a><form class="linea" method="post" th:action="@{/logout}"><input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"><button type="submit">Salir</button></form></nav><h1>Registrar vecino</h1>
+<div th:if="${error}" class="alerta error" th:text="${error}"></div>
+<form th:action="@{/vecinos/nuevo}" th:object="${form}" method="post"><input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+<div class="campos"><div><label>DNI</label><input th:field="*{dni}" required pattern="[0-9]{8}" maxlength="8" inputmode="numeric"></div><div><label>Nombres</label><input th:field="*{nombres}" required maxlength="80"></div><div><label>Apellidos</label><input th:field="*{apellidos}" required maxlength="80"></div><div><label>Dirección</label><input th:field="*{direccion}" required maxlength="150"></div><div><label>Teléfono (opcional)</label><input th:field="*{telefono}" maxlength="15"></div><div><label>Código de contribuyente (opcional)</label><input th:field="*{codigoContribuyente}" maxlength="20"></div><div><label>Sector</label><select th:field="*{sectorId}" required><option value="">Seleccionar</option><option th:each="s:${sectores}" th:value="${s.id}" th:text="${s.nombre}"></option></select></div></div>
+<p class="ayuda">Se creará una cuenta con usuario v+DNI y clave temporal aleatoria.</p><button type="submit">Guardar vecino</button></form></main></body></html>
