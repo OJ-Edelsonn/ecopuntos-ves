@@ -25,6 +25,10 @@
 <div class="card mb-4" th:if="${atencion != null}"><div class="card-body">
 <h2 class="h5">Atención municipal</h2>
 <p class="mb-1"><strong>Responsable:</strong> <span th:text="${atencion.responsable}"></span></p>
+<p class="mb-1" th:if="${atencion.cuadrilla != null}"><strong>Cuadrilla registrada:</strong>
+<span th:text="${atencion.cuadrilla.nombre}"></span></p>
+<p class="mb-1" th:if="${atencion.miembro != null}"><strong>Encargado designado:</strong>
+<span th:text="${atencion.miembro.nombreCompleto}"></span> · <span th:text="${atencion.miembro.cargo}"></span></p>
 <p class="mb-1"><strong>Fecha programada:</strong> <span th:text="${#temporals.format(atencion.fechaProgramada,'dd/MM/yyyy')}"></span></p>
 <p class="mb-1" th:if="${atencion.fechaResolucion != null}"><strong>Fecha de resolución:</strong> <span th:text="${#temporals.format(atencion.fechaResolucion,'dd/MM/yyyy HH:mm')}"></span></p>
 <p class="mb-1" th:if="${atencion.observacion != null}"><strong>Resultado:</strong> <span th:text="${atencion.observacion}"></span></p>
@@ -43,8 +47,20 @@
 <h2 class="h5">Asignar atención</h2>
 <form method="post" th:action="@{/puntos-criticos/{id}/iniciar-atencion(id=${reporte.id})}">
 <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
-<div class="mb-3"><label for="responsable" class="form-label">Responsable o cuadrilla</label>
-<input name="responsable" id="responsable" class="form-control" required maxlength="100" placeholder="Cuadrilla de limpieza 01"></div>
+<div class="mb-3"><label for="cuadrillaId" class="form-label">Cuadrilla responsable</label>
+<select name="cuadrillaId" id="cuadrillaId" class="form-select" required>
+<option value="">Seleccionar cuadrilla registrada...</option>
+<option th:each="c : ${cuadrillas}" th:value="${c.id}"
+        th:text="${c.nombre + (c.sector != null ? ' - ' + c.sector.nombre : '')}"></option>
+</select></div>
+<div class="mb-3"><label for="miembroId" class="form-label">Persona encargada (opcional)</label>
+<select name="miembroId" id="miembroId" class="form-select">
+<option value="">Sin persona designada</option>
+<option th:each="p : ${miembros}" th:if="${p.cuadrilla.activo}" th:value="${p.id}"
+        th:attr="data-cuadrilla=${p.cuadrilla.id}"
+        th:text="${p.nombreCompleto + ' - ' + p.cargo}"></option>
+</select>
+<div class="form-text">Solo se muestran integrantes activos de la cuadrilla seleccionada.</div></div>
 <div class="mb-3"><label for="fechaProgramada" class="form-label">Fecha programada</label>
 <input type="date" name="fechaProgramada" id="fechaProgramada" class="form-control" th:min="${hoy}" required></div>
 <button class="btn btn-success">Asignar atención</button></form></div></div>
@@ -57,4 +73,21 @@
 <button class="btn btn-success">Marcar RESUELTO</button></form></div></div>
 <div th:if="${esVecino and reporte.estado == 'VALIDADO'}" class="alert alert-info">Tu reporte fue validado y los puntos de incentivo ya están acreditados.</div>
 <div th:if="${esVecino and reporte.estado == 'REPORTADO'}" class="alert alert-secondary">Tu reporte está pendiente de revisión municipal.</div>
-</main></body></html>
+</main>
+<script>
+(function () {
+  const equipo = document.getElementById('cuadrillaId');
+  const persona = document.getElementById('miembroId');
+  if (!equipo || !persona) return;
+  function filtrar() {
+    persona.value = '';
+    Array.from(persona.options).forEach(option => {
+      if (!option.value) return;
+      option.hidden = option.dataset.cuadrilla !== equipo.value;
+      option.disabled = option.hidden;
+    });
+  }
+  equipo.addEventListener('change', filtrar);
+  filtrar();
+}());
+</script></body></html>

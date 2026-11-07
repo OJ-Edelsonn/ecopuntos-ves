@@ -34,16 +34,21 @@ public class PuntosCriticosService {
     private final SectorRepository sectores;
     private final ReportePuntoCriticoRepository reportes;
     private final AtencionPuntoCriticoRepository atenciones;
+    private final CuadrillaRepository cuadrillas;
+    private final MiembroCuadrillaRepository miembros;
     private final FotosPuntosCriticosService fotos;
 
     public PuntosCriticosService(EntityManager em, UsuarioRepository usuarios,
                                 VecinoRepository vecinos, SectorRepository sectores,
                                 ReportePuntoCriticoRepository reportes,
                                 AtencionPuntoCriticoRepository atenciones,
+                                CuadrillaRepository cuadrillas,
+                                MiembroCuadrillaRepository miembros,
                                 FotosPuntosCriticosService fotos) {
         this.em = em; this.usuarios = usuarios; this.vecinos = vecinos;
         this.sectores = sectores; this.reportes = reportes;
-        this.atenciones = atenciones; this.fotos = fotos;
+        this.atenciones = atenciones; this.cuadrillas = cuadrillas;
+        this.miembros = miembros; this.fotos = fotos;
     }
 
     private LocalDateTime ahora() { return LocalDateTime.now(LIMA); }
@@ -205,19 +210,46 @@ public class PuntosCriticosService {
         em.flush();
     }
 
+    @Transactional(readOnly = true)
+    public List<Cuadrilla> cuadrillasActivas() {
+        return cuadrillas.findByActivoTrueOrderByNombreAsc();
+    }
+
+    @Transactional(readOnly = true)
+    public List<MiembroCuadrilla> miembrosActivos() {
+        return miembros.findByActivoTrueOrderByApellidosAsc();
+    }
+
     @Transactional
-    public void iniciarAtencion(int id, String responsable, LocalDate fechaProgramada, String username) {
+    public void iniciarAtencion(int id, Integer cuadrillaId, Integer miembroId,
+                               LocalDate fechaProgramada, String username) {
         Usuario f = funcionario(username);
         ReportePuntoCritico r = reportes.bloquear(id)
                 .orElseThrow(() -> new IllegalArgumentException("Reporte no encontrado."));
         if (!"VALIDADO".equals(r.getEstado()))
             throw new IllegalArgumentException("Solo pueden asignarse reportes VALIDADOS.");
-        String nombre = texto(responsable, 100, "Responsable");
         if (fechaProgramada == null || fechaProgramada.isBefore(LocalDate.now(LIMA)))
             throw new IllegalArgumentException("La fecha programada no puede ser anterior a hoy.");
         if (atenciones.findByReporte_Id(id).isPresent())
             throw new IllegalArgumentException("El reporte ya tiene una atención asignada.");
-        atenciones.save(new AtencionPuntoCritico(r, nombre, fechaProgramada, f));
+        if (cuadrillaId == null)
+            throw new IllegalArgumentException("Selecciona una cuadrilla registrada.");
+        Cuadrilla equipo = cuadrillas.findById(cuadrillaId)
+                .orElseThrow(() -> new IllegalArgumentException("Cuadrilla inexistente."));
+        if (!equipo.isActivo())
+            throw new IllegalArgumentException("La cuadrilla seleccionada no está activa.");
+        MiembroCuadrilla persona = null;
+        if (miembroId != null) {
+            persona = miembros.findById(miembroId)
+                    .orElseThrow(() -> new IllegalArgumentException("Integrante inexistente."));
+            if (!persona.isActivo() || !persona.getCuadrilla().getId().equals(equipo.getId()))
+                throw new IllegalArgumentException("El integrante debe estar activo y pertenecer a la cuadrilla.");
+        }
+        String responsable = equipo.getNombre();
+        // El texto historico conserva la asignacion aun si se desactiva el catalogo.
+        AtencionPuntoCritico atencion = new AtencionPuntoCritico(r, responsable, fechaProgramada, f);
+        atencion.asignarCatalogo(equipo, persona);
+        atenciones.save(atencion);
         r.iniciarAtencion(ahora());
         em.flush();
     }

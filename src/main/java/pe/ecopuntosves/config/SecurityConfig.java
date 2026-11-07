@@ -92,6 +92,15 @@ public class SecurityConfig {
         	            .requestMatchers("/reportes", "/reportes/**")
         	                .hasAnyRole("FUNCIONARIO", "ADMINISTRADOR")
         	            
+        	             // Consolidación 03: Cuadrillas municipales
+        	                .requestMatchers(
+        	                    org.springframework.http.HttpMethod.POST,
+        	                    "/cuadrillas/**"
+        	                ).hasRole("ADMINISTRADOR")
+
+        	                .requestMatchers("/cuadrillas", "/cuadrillas/**")
+        	                    .hasAnyRole("FUNCIONARIO", "ADMINISTRADOR")       
+        	                
         	    .anyRequest().authenticated()
         	)
             .formLogin(form -> form.defaultSuccessUrl("/", false).permitAll())

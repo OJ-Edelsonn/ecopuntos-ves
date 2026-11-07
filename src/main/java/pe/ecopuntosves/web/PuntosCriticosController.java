@@ -94,6 +94,8 @@ public class PuntosCriticosController {
         ReportePuntoCritico r = servicio.verAutorizado(id, principal.getName());
         model.addAttribute("reporte", r);
         model.addAttribute("atencion", servicio.obtenerAtencion(id, principal.getName()));
+        model.addAttribute("cuadrillas", servicio.cuadrillasActivas());
+        model.addAttribute("miembros", servicio.miembrosActivos());
         model.addAttribute("hoy", LocalDate.now(java.time.ZoneId.of("America/Lima")));
         banderas(model, auth);
         return "puntos-criticos/detalle";
@@ -118,13 +120,15 @@ public class PuntosCriticosController {
     }
 
     @PostMapping("/{id}/iniciar-atencion")
-    public String iniciarAtencion(@PathVariable int id, @RequestParam String responsable,
+    public String iniciarAtencion(@PathVariable int id,
+                                  @RequestParam Integer cuadrillaId,
+                                  @RequestParam(required = false) Integer miembroId,
                                   @RequestParam(required = false)
                                   @org.springframework.format.annotation.DateTimeFormat(iso = org.springframework.format.annotation.DateTimeFormat.ISO.DATE)
                                   LocalDate fechaProgramada, Principal principal,
                                   RedirectAttributes flash) {
         try {
-            servicio.iniciarAtencion(id, responsable, fechaProgramada, principal.getName());
+            servicio.iniciarAtencion(id, cuadrillaId, miembroId, fechaProgramada, principal.getName());
             flash.addFlashAttribute("mensaje", "Atención asignada y reporte EN_ATENCION.");
         } catch (IllegalArgumentException | DataIntegrityViolationException ex) {
             flash.addFlashAttribute("error", ex instanceof IllegalArgumentException
