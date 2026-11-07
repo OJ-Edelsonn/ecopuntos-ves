@@ -88,6 +88,10 @@ public class SecurityConfig {
         	        .requestMatchers("/canjes/**")
         	            .hasAnyRole("VECINO", "FUNCIONARIO")
         	        
+        	         // Módulo 06: Reportes y estadísticas
+        	            .requestMatchers("/reportes", "/reportes/**")
+        	                .hasAnyRole("FUNCIONARIO", "ADMINISTRADOR")
+        	            
         	    .anyRequest().authenticated()
         	)
             .formLogin(form -> form.defaultSuccessUrl("/", false).permitAll())
