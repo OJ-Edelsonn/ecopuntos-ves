@@ -68,6 +68,26 @@ public class SecurityConfig {
         	            "/puntos-criticos/**"
         	        ).hasAnyRole("VECINO", "FUNCIONARIO", "ADMINISTRADOR")
         	        
+        	     // Módulo 05: Canjes
+        	        .requestMatchers(
+        	            org.springframework.http.HttpMethod.POST,
+        	            "/canjes/*/anular"
+        	        ).hasRole("FUNCIONARIO")
+
+        	        .requestMatchers(
+        	            org.springframework.http.HttpMethod.POST,
+        	            "/canjes/emitir"
+        	        ).hasRole("VECINO")
+
+        	        .requestMatchers("/canjes/administrar")
+        	            .hasRole("FUNCIONARIO")
+
+        	        .requestMatchers("/canjes")
+        	            .hasRole("VECINO")
+
+        	        .requestMatchers("/canjes/**")
+        	            .hasAnyRole("VECINO", "FUNCIONARIO")
+        	        
         	    .anyRequest().authenticated()
         	)
             .formLogin(form -> form.defaultSuccessUrl("/", false).permitAll())

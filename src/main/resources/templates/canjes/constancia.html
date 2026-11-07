@@ -1,0 +1,26 @@
+<!doctype html><html lang="es" xmlns:th="http://www.thymeleaf.org"><head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Constancia simulada | EcoPuntos VES</title>
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+<style>@media print{.no-imprimir{display:none!important}body{background:white!important}.card{box-shadow:none!important}}
+.marca{letter-spacing:.15em;font-weight:800;color:#b45309}</style></head>
+<body class="bg-light"><main class="container my-4" style="max-width:780px">
+<nav class="no-imprimir mb-3 d-flex gap-3"><a th:href="@{/canjes/{id}(id=${canje.id})}">Volver al detalle</a>
+<button class="btn btn-outline-primary btn-sm" type="button" onclick="window.print()">Imprimir / Guardar como PDF</button></nav>
+<article class="card p-4"><div class="card-body">
+<p class="marca text-center fs-5 mb-2">SIMULACIÓN · SIN VALIDEZ TRIBUTARIA</p>
+<h1 class="h3 text-center">EcoPuntos VES</h1>
+<p class="text-center">Constancia académica de canje de puntos</p><hr>
+<dl class="row">
+<dt class="col-sm-5">Código</dt><dd class="col-sm-7" th:text="${canje.codigoConstancia}"></dd>
+<dt class="col-sm-5">Estado</dt><dd class="col-sm-7" th:text="${canje.estado}"></dd>
+<dt class="col-sm-5">Fecha de emisión</dt><dd class="col-sm-7" th:text="${#temporals.format(canje.fechaHora,'dd/MM/yyyy HH:mm')}"></dd>
+<dt class="col-sm-5">Vecino</dt><dd class="col-sm-7" th:text="${canje.vecino.usuario.nombreCompleto}"></dd>
+<dt class="col-sm-5">Código de contribuyente (de prueba)</dt><dd class="col-sm-7" th:text="${canje.codigoContribuyente}"></dd>
+<dt class="col-sm-5">Puntos canjeados</dt><dd class="col-sm-7" th:text="${canje.puntosCanjeados}"></dd>
+<dt class="col-sm-5">Equivalencia utilizada</dt><dd class="col-sm-7" th:text="|${canje.valorAplicado} puntos / S/ 1.00|"></dd>
+<dt class="col-sm-5">Descuento SIMULADO</dt><dd class="col-sm-7 fw-bold" th:text="|S/ ${canje.montoDescuento}|"></dd>
+</dl><hr>
+<p class="alert alert-danger" th:if="${canje.estado == 'ANULADO'}">ANULADO: esta constancia fue cancelada y sus puntos fueron devueltos.</p>
+<p class="small text-muted">Esta constancia es parte de un proyecto universitario. No demuestra deuda, pago, descuento aprobado ni trámite realizado por una entidad municipal. No tiene valor fiscal, tributario ni administrativo.</p>
+</div></article></main></body></html>
