@@ -49,7 +49,25 @@ public class SecurityConfig {
         	        .hasAnyRole("OPERADOR", "ADMINISTRADOR")
         	    .requestMatchers("/mis-entregas")
         	        .hasRole("VECINO")
+        	        
+        	     // Módulo 04: Gestión de puntos críticos
+        	        .requestMatchers(
+        	            org.springframework.http.HttpMethod.POST,
+        	            "/puntos-criticos/*/decidir",
+        	            "/puntos-criticos/*/iniciar-atencion",
+        	            "/puntos-criticos/*/resolver"
+        	        ).hasRole("FUNCIONARIO")
 
+        	        .requestMatchers(
+        	            "/puntos-criticos/nuevo",
+        	            "/puntos-criticos/mis-reportes"
+        	        ).hasRole("VECINO")
+
+        	        .requestMatchers(
+        	            "/puntos-criticos",
+        	            "/puntos-criticos/**"
+        	        ).hasAnyRole("VECINO", "FUNCIONARIO", "ADMINISTRADOR")
+        	        
         	    .anyRequest().authenticated()
         	)
             .formLogin(form -> form.defaultSuccessUrl("/", false).permitAll())
