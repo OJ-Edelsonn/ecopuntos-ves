@@ -1,0 +1,39 @@
+<!doctype html><html lang="es" xmlns:th="http://www.thymeleaf.org"><head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Registrar entrega | EcoPuntos VES</title>
+<style>
+:root{font-family:Arial,sans-serif;color:#1f2937;background:#f4f7f6}body{margin:0}
+main{max-width:1050px;margin:25px auto;padding:24px;background:white;border-radius:12px;box-shadow:0 2px 14px #0001}
+h1{font-size:1.6rem;margin-top:0}h2{font-size:1.1rem}a{color:#087f5b}
+nav{display:flex;gap:12px;flex-wrap:wrap;align-items:center;margin:0 0 22px}
+table{width:100%;border-collapse:collapse}th,td{text-align:left;padding:10px;border-bottom:1px solid #e5e7eb;font-size:14px}
+th{background:#eaf5ed}label{display:block;margin:12px 0 4px;font-weight:600}
+input{box-sizing:border-box;width:100%;padding:10px;border:1px solid #b9c5c0;border-radius:6px}
+button,.boton{display:inline-block;width:auto;padding:10px 16px;border:0;border-radius:6px;background:#087f5b;color:#fff;text-decoration:none;cursor:pointer}
+.alerta{padding:13px;margin:14px 0;border-radius:6px;background:#e6f6ed}.error{background:#fee2e2}
+.ayuda{color:#52615c;font-size:14px}.paginacion{display:flex;gap:15px;margin-top:15px}
+form.linea{display:inline}form.linea button{background:#455a64;padding:6px 9px}
+.campos{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:14px}
+@media(max-width:700px){main{margin:8px;padding:12px}table{display:block;overflow-x:auto}}
+</style>
+</head><body><main><nav><a th:href="@{/}">Inicio</a><a th:href="@{/materiales}">Materiales</a>
+<a th:href="@{/vecinos}">Vecinos</a><a th:href="@{/entregas}">Entregas</a><a th:href="@{/cambiar-clave}">Cambiar clave</a>
+<form class="linea" method="post" th:action="@{/logout}"><input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"><button type="submit">Salir</button></form></nav>
+<h1>Registrar entrega de reciclables</h1>
+<p class="ayuda">Ingresa el DNI del vecino y los kilos realmente pesados. Deja en blanco los materiales que no se entregan. Los puntos se calculan automáticamente según las reglas vigentes de MariaDB.</p>
+<div class="alerta error" th:if="${error}" th:text="${error}"></div>
+<form method="post" th:action="@{/entregas/nueva}" th:object="${form}">
+<input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+<label for="dni">DNI del vecino registrado</label>
+<input id="dni" th:field="*{dniVecino}" type="text" inputmode="numeric" pattern="[0-9]{8}" maxlength="8" required placeholder="Ej.: 00000001">
+<p class="ayuda">Si el vecino no existe, primero regístralo en <a th:href="@{/vecinos/nuevo}">Gestión de vecinos</a>.</p>
+<table><thead><tr><th>Material</th><th>Peso en kilogramos</th></tr></thead>
+<tbody><tr th:each="m, iter : ${materiales}">
+<td th:text="${m.nombre}"></td>
+<td><input type="hidden" th:name="|materialIds[${iter.index}]|" th:value="${m.id}">
+<input type="number" th:name="|kilos[${iter.index}]|" min="0.01" max="99999.99" step="0.01" placeholder="0.00" inputmode="decimal"
+ th:value="${form.kilos != null and form.kilos.size() > iter.index ? form.kilos[iter.index] : ''}"></td>
+</tr></tbody></table>
+<p><button type="submit">Registrar entrega y acreditar puntos</button> <a th:href="@{/entregas}">Cancelar</a></p>
+</form>
+</main></body></html>
