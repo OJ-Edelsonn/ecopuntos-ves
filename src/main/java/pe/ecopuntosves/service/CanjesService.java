@@ -106,13 +106,12 @@ public class CanjesService {
         Vecino existente = vecino(username);
         if (puntosSolicitados == null || puntosSolicitados <= 0)
             throw new IllegalArgumentException("Ingresa un número entero positivo de puntos.");
-        // La fila de vecino se bloquea ANTES de consultar el saldo; compartido con entregas y reportes.
         Vecino v = em.find(Vecino.class, existente.getId(), LockModeType.PESSIMISTIC_WRITE);
         if (!v.getUsuario().isActivo())
             throw new IllegalArgumentException("Tu cuenta se encuentra desactivada.");
         String contribuyente = v.getCodigoContribuyente() == null ? "" : v.getCodigoContribuyente().trim();
         if (contribuyente.isBlank())
-            throw new IllegalArgumentException("Tu perfil no tiene código de contribuyente de prueba. Solicita registrarlo antes de canjear.");
+            throw new IllegalArgumentException("Tu perfil no tiene un código de contribuyente registrado. Solicita actualizarlo antes de canjear.");
         ReglaPuntos regla = reglaActual();
         int equivalente;
         try { equivalente = regla.getValor().intValueExact(); }
@@ -135,7 +134,7 @@ public class CanjesService {
                 .setParameter("puntos", -puntosSolicitados)
                 .setParameter("fecha", java.sql.Timestamp.valueOf(fecha))
                 .setParameter("canje", c.getId())
-                .setParameter("descripcion", "Canje simulado de puntos por descuento de arbitrios")
+                .setParameter("descripcion", "Canje de puntos por descuento en arbitrios")
                 .setParameter("usuario", v.getUsuario().getId())
                 .executeUpdate();
         em.flush();
@@ -179,9 +178,7 @@ public class CanjesService {
             throw new IllegalArgumentException("Indica el motivo de anulación (máximo 300 caracteres).");
         Canje c = canjes.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("Constancia no encontrada."));
-        // Siempre bloquear primero al vecino, igual que el resto de movimientos de puntos.
         em.find(Vecino.class, c.getVecino().getId(), LockModeType.PESSIMISTIC_WRITE);
-        // Releer el canje bajo bloqueo para impedir doble anulación en peticiones simultáneas.
         em.refresh(c, LockModeType.PESSIMISTIC_WRITE);
         if (!"EMITIDO".equals(c.getEstado()))
             throw new IllegalArgumentException("Esta constancia ya fue anulada.");
@@ -195,7 +192,7 @@ public class CanjesService {
                 .setParameter("puntos", c.getPuntosCanjeados())
                 .setParameter("fecha", java.sql.Timestamp.valueOf(fecha))
                 .setParameter("canje", c.getId())
-                .setParameter("descripcion", "Reverso por anulación de canje simulado")
+                .setParameter("descripcion", "Reverso por anulación de canje")
                 .setParameter("usuario", f.getId())
                 .executeUpdate();
         em.flush();

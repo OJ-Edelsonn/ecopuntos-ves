@@ -1,23 +1,90 @@
-<!doctype html><html lang="es" xmlns:th="http://www.thymeleaf.org"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Personal | EcoPuntos VES</title>
+<!doctype html>
+<html lang="es" data-bs-theme="dark" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragmentos/menu :: head('Personal del sistema')}"></head>
+<body>
 
-<style>
-  :root {font-family:Arial,sans-serif;color:#1f2937;background:#f4f7f6}
-  body {margin:0} main {max-width:1050px;margin:25px auto;padding:24px;background:white;border-radius:12px;box-shadow:0 2px 14px #0001}
-  h1 {font-size:1.6rem;margin-top:0} h2 {font-size:1.1rem}
-  a {color:#087f5b} nav {display:flex;gap:12px;flex-wrap:wrap;margin:0 0 22px}
-  table {width:100%;border-collapse:collapse} th,td {text-align:left;padding:10px;border-bottom:1px solid #e5e7eb;font-size:14px}
-  th {background:#eaf5ed} label {display:block;margin:12px 0 4px;font-weight:600}
-  input,select {box-sizing:border-box;width:100%;padding:10px;border:1px solid #b9c5c0;border-radius:6px}
-  button,.boton {display:inline-block;width:auto;padding:10px 16px;border:0;border-radius:6px;background:#087f5b;color:#fff;text-decoration:none;cursor:pointer}
-  .alerta {padding:13px;margin:14px 0;border-radius:6px;background:#fff5d7}
-  .error {background:#fee2e2} .campos {display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:12px}
-  .paginacion {display:flex;gap:15px;margin-top:15px} .ayuda {color:#52615c;font-size:14px}
-  form.linea {display:inline} form.linea button {background:#455a64;padding:6px 9px}
-</style>
-</head><body><main><nav><a th:href="@{/}">Inicio</a><a th:href="@{/vecinos}">Vecinos</a><form class="linea" method="post" th:action="@{/logout}"><input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"><button type="submit">Salir</button></form></nav><h1>Personal del sistema</h1><p><a class="boton" th:href="@{/usuarios/nuevo}">Crear cuenta de personal</a></p>
-<div th:if="${mensaje}" class="alerta" th:text="${mensaje}"></div><div th:if="${error}" class="alerta error" th:text="${error}"></div>
-<div th:if="${usuarioCreado}" class="alerta">Usuario nuevo: <strong th:text="${usuarioCreado}"></strong> | Clave temporal (una sola vez): <strong th:text="${claveTemporal}"></strong><p>Compartir por un canal privado. Se exigirá cambio al iniciar sesión.</p></div>
-<table><thead><tr><th>Usuario</th><th>Nombre</th><th>Rol</th><th>Estado</th><th>Acción</th></tr></thead><tbody>
-<tr th:each="u:${usuarios.content}"><td th:text="${u.username}"></td><td th:text="${u.nombreCompleto}"></td><td th:text="${u.rol.nombre}"></td><td th:text="${u.activo ? 'Activo' : 'Inactivo'}"></td><td><form class="linea" method="post" th:action="@{/usuarios/{id}/estado(id=${u.id})}"><input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"><button type="submit" th:text="${u.activo ? 'Desactivar' : 'Activar'}"></button></form></td></tr>
-</tbody></table><div class="paginacion"><a th:if="${usuarios.hasPrevious()}" th:href="@{/usuarios(page=${usuarios.number-1})}">Anterior</a><span th:text="|Página ${usuarios.number+1} de ${usuarios.totalPages==0 ? 1 : usuarios.totalPages}|"></span><a th:if="${usuarios.hasNext()}" th:href="@{/usuarios(page=${usuarios.number+1})}">Siguiente</a></div>
-</main></body></html>
+<div th:replace="~{fragmentos/menu :: sidebar('usuarios')}"></div>
+
+<main class="eco-main">
+  <div class="container-fluid" style="max-width: 1120px;">
+    <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-4">
+      <div>
+        <h1 class="h3 fw-bold text-white mb-1">Personal del sistema</h1>
+        <p class="text-eco-muted mb-0">Administración de cuentas de operadores, funcionarios y administradores.</p>
+      </div>
+      <a class="btn btn-eco" th:href="@{/usuarios/nuevo}">
+        <i class="bi bi-person-plus me-1"></i> Crear cuenta de personal
+      </a>
+    </div>
+
+    <div th:if="${mensaje}" class="alert alert-eco mb-3" th:text="${mensaje}"></div>
+    <div th:if="${error}" class="alert alert-danger mb-3" th:text="${error}"></div>
+
+    <div th:if="${usuarioCreado}" class="eco-card-neon mb-4">
+      <div class="d-flex align-items-center gap-2 text-eco-neon fw-bold mb-2">
+        <i class="bi bi-key-fill"></i> Credenciales generadas (mostrar una sola vez)
+      </div>
+      <p class="mb-1 text-white">
+        <strong>Usuario:</strong> <span th:text="${usuarioCreado}"></span>
+        &nbsp;|&nbsp;
+        <strong>Clave temporal:</strong>
+        <code class="fs-6 text-eco-neon bg-dark px-2 py-1 rounded" th:text="${claveTemporal}"></code>
+      </p>
+      <p class="small text-eco-muted mb-0">Entregar por canal privado. Se exigirá cambio al primer inicio de sesión.</p>
+    </div>
+
+    <div class="eco-card">
+      <div class="table-responsive">
+        <table class="table table-hover align-middle">
+          <thead>
+            <tr>
+              <th>Usuario</th>
+              <th>Nombre completo</th>
+              <th>Correo</th>
+              <th>Rol</th>
+              <th>Estado</th>
+              <th class="text-end">Acciones</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr th:each="u : ${usuarios.content}">
+              <td class="fw-semibold text-white" th:text="${u.username}"></td>
+              <td th:text="${u.nombreCompleto}"></td>
+              <td class="text-eco-muted small" th:text="${u.correo ?: '-'}"></td>
+              <td><span class="badge bg-dark border border-secondary text-light" th:text="${u.rol.nombre}"></span></td>
+              <td>
+                <span th:class="${u.activo ? 'badge badge-neon' : 'badge text-bg-secondary'}"
+                      th:text="${u.activo ? 'Activo' : 'Inactivo'}"></span>
+              </td>
+              <td class="text-end text-nowrap">
+                <a class="btn btn-sm btn-outline-secondary me-1"
+                   th:href="@{/usuarios/{id}/editar(id=${u.id})}">Editar</a>
+                <form method="post" th:action="@{/usuarios/{id}/estado(id=${u.id})}" class="d-inline">
+                  <button type="submit"
+                          th:class="${u.activo ? 'btn btn-sm btn-outline-danger' : 'btn btn-sm btn-outline-eco'}"
+                          th:text="${u.activo ? 'Desactivar' : 'Activar'}"></button>
+                </form>
+              </td>
+            </tr>
+            <tr th:if="${usuarios.empty}">
+              <td colspan="6" class="text-center text-eco-muted py-4">No hay cuentas registradas.</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="d-flex gap-3 align-items-center mt-3 pt-3 border-top border-secondary-subtle">
+        <a class="btn btn-outline-secondary btn-sm" th:if="${usuarios.hasPrevious()}"
+           th:href="@{/usuarios(page=${usuarios.number - 1})}">Anterior</a>
+        <span class="small text-eco-muted"
+              th:text="|Página ${usuarios.number + 1} de ${usuarios.totalPages == 0 ? 1 : usuarios.totalPages}|"></span>
+        <a class="btn btn-outline-secondary btn-sm" th:if="${usuarios.hasNext()}"
+           th:href="@{/usuarios(page=${usuarios.number + 1})}">Siguiente</a>
+      </div>
+    </div>
+  </div>
+</main>
+
+<div th:replace="~{fragmentos/menu :: scripts}"></div>
+</body>
+</html>

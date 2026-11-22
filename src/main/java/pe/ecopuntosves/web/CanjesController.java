@@ -2,20 +2,25 @@ package pe.ecopuntosves.web;
 
 import java.security.Principal;
 import org.springframework.dao.DataIntegrityViolationException;
-import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
-import org.springframework.web.bind.annotation.*;
-import org.springframework.web.server.ResponseStatusException;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
-import pe.ecopuntosves.model.Canje;
 import pe.ecopuntosves.service.CanjesService;
 
 @Controller
 @RequestMapping("/canjes")
 public class CanjesController {
+
     private final CanjesService service;
-    public CanjesController(CanjesService service) { this.service = service; }
+
+    public CanjesController(CanjesService service) {
+        this.service = service;
+    }
 
     @GetMapping
     public String miPanel(@RequestParam(defaultValue = "0") int page,
@@ -25,7 +30,7 @@ public class CanjesController {
     }
 
     @PostMapping("/emitir")
-    public String emitir(@RequestParam(name = "puntos", required = false) Integer puntos,
+    public String emitir(@RequestParam(required = false) Integer puntos,
                          Principal principal, RedirectAttributes flash) {
         try {
             Integer id = service.emitir(principal.getName(), puntos);
@@ -49,7 +54,7 @@ public class CanjesController {
     @GetMapping("/{id}")
     public String detalle(@PathVariable int id, Principal principal, Model m) {
         m.addAttribute("canje", service.detalleAutorizado(id, principal.getName()));
-        m.addAttribute("esFuncionario", esFuncionario(principal.getName()));
+        m.addAttribute("esFuncionario", service.esFuncionario(principal.getName()));
         return "canjes/detalle";
     }
 
@@ -70,15 +75,5 @@ public class CanjesController {
                     : "No se pudo anular. Comprueba el estado y vuelve a intentarlo.");
         }
         return "redirect:/canjes/" + id;
-    }
-
-    private boolean esFuncionario(String username) {
-        // La interfaz no reemplaza las comprobaciones de rol del servicio y de Spring Security.
-        return service.esFuncionario(username);
-    }
-
-    @ExceptionHandler(SecurityException.class)
-    public void accesoDenegado(SecurityException e) {
-        throw new ResponseStatusException(HttpStatus.FORBIDDEN, "No autorizado.");
     }
 }

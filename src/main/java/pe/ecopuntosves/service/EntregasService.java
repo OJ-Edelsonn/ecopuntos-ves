@@ -4,19 +4,38 @@ import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.LockModeType;
-import org.springframework.data.domain.*;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.data.domain.Sort.Direction;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import pe.ecopuntosves.model.*;
-import pe.ecopuntosves.repository.*;
+import pe.ecopuntosves.model.DetalleEntrega;
+import pe.ecopuntosves.model.Entrega;
+import pe.ecopuntosves.model.MovimientoPuntos;
+import pe.ecopuntosves.model.ReglaPuntos;
+import pe.ecopuntosves.model.TipoMaterial;
+import pe.ecopuntosves.model.Usuario;
+import pe.ecopuntosves.model.Vecino;
+import pe.ecopuntosves.repository.DetalleEntregaRepository;
+import pe.ecopuntosves.repository.EntregaRepository;
+import pe.ecopuntosves.repository.MovimientoPuntosRepository;
+import pe.ecopuntosves.repository.ReglaPuntosRepository;
+import pe.ecopuntosves.repository.TipoMaterialRepository;
+import pe.ecopuntosves.repository.UsuarioRepository;
+import pe.ecopuntosves.repository.VecinoRepository;
 import pe.ecopuntosves.web.form.EntregaForm;
 
 @Service
 public class EntregasService {
+
     private static final ZoneId LIMA = ZoneId.of("America/Lima");
     private final EntityManager em;
     private final UsuarioRepository usuarios;
@@ -28,121 +47,164 @@ public class EntregasService {
     private final VecinoRepository vecinos;
 
     public EntregasService(EntityManager em, UsuarioRepository usuarios,
-        TipoMaterialRepository materiales, ReglaPuntosRepository reglas,
-        EntregaRepository entregas, DetalleEntregaRepository detalles,
-        MovimientoPuntosRepository movimientos, VecinoRepository vecinos) {
-        this.em=em; this.usuarios=usuarios; this.materiales=materiales;
-        this.reglas=reglas; this.entregas=entregas;
-        this.detalles=detalles; this.movimientos=movimientos; this.vecinos=vecinos;
+                           TipoMaterialRepository materiales, ReglaPuntosRepository reglas,
+                           EntregaRepository entregas, DetalleEntregaRepository detalles,
+                           MovimientoPuntosRepository movimientos, VecinoRepository vecinos) {
+        this.em = em;
+        this.usuarios = usuarios;
+        this.materiales = materiales;
+        this.reglas = reglas;
+        this.entregas = entregas;
+        this.detalles = detalles;
+        this.movimientos = movimientos;
+        this.vecinos = vecinos;
     }
 
     @Transactional(readOnly = true)
     public List<TipoMaterial> materialesActivos() {
         return materiales.findByActivoTrueOrderByNombreAsc();
     }
+
     @Transactional(readOnly = true)
     public Page<Entrega> listar(String dni, int page, String orden) {
-        // Por defecto: numero de entrega ascendente. Alternativa: mas recientes primero.
         Sort sort = "recientes".equals(orden)
                 ? Sort.by(Direction.DESC, "fechaHora").and(Sort.by(Direction.DESC, "id"))
                 : Sort.by(Direction.ASC, "id");
-        Pageable p=PageRequest.of(Math.max(0,Math.min(10000,page)),15,sort);
-        String filtro=dni==null?"":dni.trim();
-        return filtro.isEmpty()?entregas.findAll(p)
-                :entregas.findByVecino_DniContaining(filtro,p);
+        Pageable p = PageRequest.of(Math.max(0, Math.min(10000, page)), 15, sort);
+        String filtro = dni == null ? "" : dni.trim();
+        return filtro.isEmpty() ? entregas.findAll(p)
+                : entregas.findByVecino_DniContaining(filtro, p);
     }
+
     @Transactional(readOnly = true)
     public Entrega obtener(int id) {
         return entregas.findById(id)
-            .orElseThrow(() -> new IllegalArgumentException("No existe la entrega solicitada."));
+                .orElseThrow(() -> new IllegalArgumentException("No existe la entrega solicitada."));
     }
+
     @Transactional(readOnly = true)
     public List<DetalleEntrega> detalle(int id) {
         obtener(id);
         return detalles.findByEntrega_IdOrderByIdAsc(id);
     }
+
     @Transactional(readOnly = true)
     public Page<Entrega> misEntregas(String usuario, int page) {
-        Vecino v=vecinos.findByUsuario_Username(usuario)
-            .orElseThrow(() -> new IllegalArgumentException("Este usuario no tiene perfil de vecino."));
+        Vecino v = vecinos.findByUsuario_Username(usuario)
+                .orElseThrow(() -> new SecurityException("Este usuario no tiene perfil de vecino."));
         return entregas.findByVecino_IdOrderByFechaHoraDesc(v.getId(),
-            PageRequest.of(Math.max(0,Math.min(10000,page)),15));
+                PageRequest.of(Math.max(0, Math.min(10000, page)), 15));
     }
+
+    @Transactional(readOnly = true)
+    public Entrega miEntrega(int id, String usuario) {
+        Vecino v = vecinos.findByUsuario_Username(usuario)
+                .orElseThrow(() -> new SecurityException("Este usuario no tiene perfil de vecino."));
+        Entrega e = obtener(id);
+        if (!e.getVecino().getId().equals(v.getId())) {
+            throw new SecurityException("Solo puedes consultar tus propias entregas.");
+        }
+        return e;
+    }
+
+    @Transactional(readOnly = true)
+    public List<DetalleEntrega> miDetalle(int id, String usuario) {
+        miEntrega(id, usuario);
+        return detalles.findByEntrega_IdOrderByIdAsc(id);
+    }
+
     @Transactional(readOnly = true)
     public long miSaldo(String usuario) {
-        Vecino v=vecinos.findByUsuario_Username(usuario)
-            .orElseThrow(() -> new IllegalArgumentException("Este usuario no tiene perfil de vecino."));
+        Vecino v = vecinos.findByUsuario_Username(usuario)
+                .orElseThrow(() -> new SecurityException("Este usuario no tiene perfil de vecino."));
         return saldo(v.getId());
     }
+
     @Transactional(readOnly = true)
     public long saldo(Integer idVecino) {
-        Long s=movimientos.saldo(idVecino);
-        return s==null?0L:s;
+        Long s = movimientos.saldo(idVecino);
+        return s == null ? 0L : s;
     }
 
     @Transactional
     public Integer registrar(EntregaForm form, String username) {
-        if(form==null || form.getDniVecino()==null
-            || !form.getDniVecino().trim().matches("[0-9]{8}"))
+        if (form == null || form.getDniVecino() == null
+                || !form.getDniVecino().trim().matches("[0-9]{8}")) {
             throw new IllegalArgumentException("Escribe un DNI de 8 dígitos.");
-        List<Integer> ids=form.getMaterialIds();
-        List<BigDecimal> pesos=form.getKilos();
-        if(ids==null || pesos==null || ids.isEmpty() || ids.size()!=pesos.size() || ids.size()>50)
+        }
+        List<Integer> ids = form.getMaterialIds();
+        List<BigDecimal> pesos = form.getKilos();
+        if (ids == null || pesos == null || ids.isEmpty() || ids.size() != pesos.size() || ids.size() > 50) {
             throw new IllegalArgumentException("Formulario de materiales inválido.");
-        Usuario operador=usuarios.findByUsername(username)
-            .orElseThrow(() -> new IllegalArgumentException("Usuario operador no encontrado."));
-        if(!operador.isActivo() || !("OPERADOR".equals(operador.getRol().getNombre())
-                || "ADMINISTRADOR".equals(operador.getRol().getNombre())))
+        }
+        Usuario operador = usuarios.findByUsername(username)
+                .orElseThrow(() -> new IllegalArgumentException("Usuario operador no encontrado."));
+        if (!operador.isActivo() || !("OPERADOR".equals(operador.getRol().getNombre())
+                || "ADMINISTRADOR".equals(operador.getRol().getNombre()))) {
             throw new IllegalArgumentException("No tienes permiso para registrar entregas.");
+        }
 
-        // Un mismo vecino se bloquea durante cualquier movimiento de puntos.
-        // Se utiliza la misma fila bloqueada para impedir carreras al canjear.
-        List<Vecino> encontrados=em.createQuery(
-            "select v from Vecino v where v.dni = :dni",Vecino.class)
-            .setParameter("dni",form.getDniVecino().trim())
-            .setLockMode(LockModeType.PESSIMISTIC_WRITE).getResultList();
-        if(encontrados.isEmpty()) throw new IllegalArgumentException("DNI no registrado. Crea primero el vecino.");
-        Vecino vecino=encontrados.get(0);
-        if(!vecino.getUsuario().isActivo())
+        List<Vecino> encontrados = em.createQuery(
+                "select v from Vecino v where v.dni = :dni", Vecino.class)
+                .setParameter("dni", form.getDniVecino().trim())
+                .setLockMode(LockModeType.PESSIMISTIC_WRITE).getResultList();
+        if (encontrados.isEmpty()) {
+            throw new IllegalArgumentException("DNI no registrado. Crea primero el vecino.");
+        }
+        Vecino vecino = encontrados.get(0);
+        if (!vecino.getUsuario().isActivo()) {
             throw new IllegalArgumentException("La cuenta del vecino está desactivada.");
+        }
 
-        // Un item por material; omite entradas vacías (sin kilos).
-        record Item(TipoMaterial material,BigDecimal peso,int puntos,ReglaPuntos regla) {}
-        List<Item> items=new ArrayList<>();
-        Set<Integer> usados=new HashSet<>();
-        BigDecimal kilosTotal=BigDecimal.ZERO;
-        int puntosTotal=0;
-        for(int i=0;i<ids.size();i++) {
-            Integer id=ids.get(i); BigDecimal kilos=pesos.get(i);
-            if(id==null) throw new IllegalArgumentException("Hay un material sin identificar.");
-            if(!usados.add(id)) throw new IllegalArgumentException("Hay materiales repetidos.");
-            if(kilos==null) continue;
-            if(kilos.signum()<=0 || kilos.scale()>2 || kilos.compareTo(new BigDecimal("99999.99"))>0)
+        record Item(TipoMaterial material, BigDecimal peso, int puntos, ReglaPuntos regla) {}
+        List<Item> items = new ArrayList<>();
+        Set<Integer> usados = new HashSet<>();
+        BigDecimal kilosTotal = BigDecimal.ZERO;
+        int puntosTotal = 0;
+        for (int i = 0; i < ids.size(); i++) {
+            Integer id = ids.get(i);
+            BigDecimal kilos = pesos.get(i);
+            if (id == null) {
+                throw new IllegalArgumentException("Hay un material sin identificar.");
+            }
+            if (!usados.add(id)) {
+                throw new IllegalArgumentException("Hay materiales repetidos.");
+            }
+            if (kilos == null) {
+                continue;
+            }
+            if (kilos.signum() <= 0 || kilos.scale() > 2 || kilos.compareTo(new BigDecimal("99999.99")) > 0) {
                 throw new IllegalArgumentException("Los kilos deben ser positivos, con hasta 2 decimales.");
-            TipoMaterial m=materiales.findById(id)
-                .orElseThrow(() -> new IllegalArgumentException("Material no encontrado."));
-            if(!m.isActivo()) throw new IllegalArgumentException("Material inactivo: "+m.getNombre());
-            ReglaPuntos regla=reglas.findByConceptoAndMaterial_IdAndVigenteTrue("RECICLAJE",id)
-                .orElseThrow(() -> new IllegalArgumentException("Sin regla vigente para "+m.getNombre()));
+            }
+            TipoMaterial m = materiales.findById(id)
+                    .orElseThrow(() -> new IllegalArgumentException("Material no encontrado."));
+            if (!m.isActivo()) {
+                throw new IllegalArgumentException("Material inactivo: " + m.getNombre());
+            }
+            ReglaPuntos regla = reglas.findByConceptoAndMaterial_IdAndVigenteTrue("RECICLAJE", id)
+                    .orElseThrow(() -> new IllegalArgumentException("Sin regla vigente para " + m.getNombre()));
             int puntos;
             try {
-                puntos=kilos.multiply(regla.getValor()).setScale(0,RoundingMode.HALF_UP).intValueExact();
-                puntosTotal=Math.addExact(puntosTotal,puntos);
-            } catch(ArithmeticException ex) {
+                puntos = kilos.multiply(regla.getValor()).setScale(0, RoundingMode.HALF_UP).intValueExact();
+                puntosTotal = Math.addExact(puntosTotal, puntos);
+            } catch (ArithmeticException ex) {
                 throw new IllegalArgumentException("La cantidad supera el máximo permitido.");
             }
-            kilosTotal=kilosTotal.add(kilos);
-            if(kilosTotal.compareTo(new BigDecimal("99999999.99"))>0)
+            kilosTotal = kilosTotal.add(kilos);
+            if (kilosTotal.compareTo(new BigDecimal("99999999.99")) > 0) {
                 throw new IllegalArgumentException("Peso total demasiado alto.");
-            items.add(new Item(m,kilos,puntos,regla));
+            }
+            items.add(new Item(m, kilos, puntos, regla));
         }
-        if(items.isEmpty()) throw new IllegalArgumentException("Ingresa kilos para al menos un material.");
-        LocalDateTime fecha=LocalDateTime.now(LIMA);
-        Entrega entrega=entregas.save(new Entrega(vecino,operador,fecha,kilosTotal.setScale(2),puntosTotal));
-        for(Item i:items)
-            detalles.save(new DetalleEntrega(entrega,i.material(),i.peso(),i.puntos(),i.regla()));
-        movimientos.save(new MovimientoPuntos(entrega,vecino,operador,puntosTotal,fecha));
-        // Valida las restricciones SQL en la misma transaccion.
+        if (items.isEmpty()) {
+            throw new IllegalArgumentException("Ingresa kilos para al menos un material.");
+        }
+        LocalDateTime fecha = LocalDateTime.now(LIMA);
+        Entrega entrega = entregas.save(new Entrega(vecino, operador, fecha, kilosTotal.setScale(2), puntosTotal));
+        for (Item i : items) {
+            detalles.save(new DetalleEntrega(entrega, i.material(), i.peso(), i.puntos(), i.regla()));
+        }
+        movimientos.save(new MovimientoPuntos(entrega, vecino, operador, puntosTotal, fecha));
         em.flush();
         return entrega.getId();
     }

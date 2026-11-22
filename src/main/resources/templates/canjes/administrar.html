@@ -1,24 +1,63 @@
-<!doctype html><html lang="es" xmlns:th="http://www.thymeleaf.org">
-<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Administrar canjes | EcoPuntos VES</title>
-<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet"></head>
-<body class="bg-light"><main class="container bg-white rounded shadow-sm my-4 p-4" style="max-width:960px">
-<nav class="d-flex gap-3 flex-wrap mb-4"><a th:href="@{/}">Inicio</a><a th:href="@{/puntos-criticos}">Puntos críticos</a>
-<a th:href="@{/cambiar-clave}">Cambiar clave</a>
-<form th:action="@{/logout}" method="post"><input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"><button class="btn btn-sm btn-secondary">Salir</button></form></nav>
-<h1 class="h3">Administración de canjes</h1>
-<p>El funcionario puede consultar las constancias emitidas y anular aquellas que correspondan, dejando un motivo y devolviendo los puntos una sola vez.</p>
-<form th:action="@{/canjes/administrar}" method="get" class="row g-2 mb-4">
-<div class="col-md-9"><label for="codigo" class="form-label">Código de constancia</label>
-<input class="form-control" name="codigo" id="codigo" maxlength="20" th:value="${codigo}" placeholder="ECV-... o DEMO-00000001"></div>
-<div class="col-md-3 align-self-end"><button class="btn btn-success w-100">Buscar</button></div>
-</form>
-<div th:if="${encontrado != null}" class="card"><div class="card-body">
-<p class="mb-1"><strong>Constancia:</strong> <span th:text="${encontrado.codigoConstancia}"></span></p>
-<p class="mb-1"><strong>Vecino:</strong> <span th:text="${encontrado.vecino.usuario.nombreCompleto}"></span></p>
-<p class="mb-1"><strong>Puntos:</strong> <span th:text="${encontrado.puntosCanjeados}"></span></p>
-<p class="mb-1"><strong>Estado:</strong> <span th:text="${encontrado.estado}"></span></p>
-<a class="btn btn-outline-success mt-2" th:href="@{/canjes/{id}(id=${encontrado.id})}">Abrir detalle</a>
-</div></div>
-<div th:if="${!#strings.isEmpty(codigo) and encontrado == null}" class="alert alert-secondary">No se encontró una constancia con ese código.</div>
-</main></body></html>
+<!doctype html>
+<html lang="es" data-bs-theme="dark" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragmentos/menu :: head('Administrar canjes')}"></head>
+<body>
+
+<div th:replace="~{fragmentos/menu :: sidebar('canjes-admin')}"></div>
+
+<main class="eco-main">
+  <div class="container-fluid" style="max-width: 960px;">
+    <div class="mb-4">
+      <h1 class="h3 fw-bold text-white mb-1">Administración de canjes</h1>
+      <p class="text-eco-muted mb-0">Busca constancias emitidas por código para verificar su estado o gestionar anulaciones.</p>
+    </div>
+
+    <div class="eco-card mb-4">
+      <form th:action="@{/canjes/administrar}" method="get" class="row g-2 align-items-end">
+        <div class="col-md-9">
+          <label for="codigo" class="form-label">Código de constancia</label>
+          <input class="form-control" name="codigo" id="codigo" maxlength="20"
+                 th:value="${codigo}" placeholder="Ej.: ECV-...">
+        </div>
+        <div class="col-md-3">
+          <button class="btn btn-eco w-100" type="submit">
+            <i class="bi bi-search me-1"></i> Buscar
+          </button>
+        </div>
+      </form>
+    </div>
+
+    <div th:if="${encontrado != null}" class="eco-card-neon">
+      <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-3">
+        <code class="fs-5 text-eco-neon" th:text="${encontrado.codigoConstancia}"></code>
+        <span th:class="${encontrado.estado == 'EMITIDO' ? 'badge badge-neon' : 'badge text-bg-secondary'}"
+              th:text="${encontrado.estado}"></span>
+      </div>
+      <div class="row g-2 small mb-3">
+        <div class="col-md-6">
+          <span class="text-eco-muted">Vecino:</span>
+          <strong class="text-white" th:text="${encontrado.vecino.usuario.nombreCompleto}"></strong>
+        </div>
+        <div class="col-md-3">
+          <span class="text-eco-muted">Puntos:</span>
+          <strong class="text-white" th:text="${encontrado.puntosCanjeados}"></strong>
+        </div>
+        <div class="col-md-3">
+          <span class="text-eco-muted">Descuento:</span>
+          <strong class="text-eco-neon" th:text="|S/ ${encontrado.montoDescuento}|"></strong>
+        </div>
+      </div>
+      <a class="btn btn-eco btn-sm" th:href="@{/canjes/{id}(id=${encontrado.id})}">
+        Abrir detalle <i class="bi bi-arrow-right ms-1"></i>
+      </a>
+    </div>
+
+    <div th:if="${!#strings.isEmpty(codigo) and encontrado == null}" class="alert alert-secondary">
+      No se encontró una constancia registrada con ese código.
+    </div>
+  </div>
+</main>
+
+<div th:replace="~{fragmentos/menu :: scripts}"></div>
+</body>
+</html>

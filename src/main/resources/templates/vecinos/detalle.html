@@ -1,19 +1,72 @@
-<!doctype html><html lang="es" xmlns:th="http://www.thymeleaf.org"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Detalle del vecino | EcoPuntos VES</title>
+<!doctype html>
+<html lang="es" data-bs-theme="dark" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragmentos/menu :: head('Ficha de vecino')}"></head>
+<body>
 
-<style>
-  :root {font-family:Arial,sans-serif;color:#1f2937;background:#f4f7f6}
-  body {margin:0} main {max-width:1050px;margin:25px auto;padding:24px;background:white;border-radius:12px;box-shadow:0 2px 14px #0001}
-  h1 {font-size:1.6rem;margin-top:0} h2 {font-size:1.1rem}
-  a {color:#087f5b} nav {display:flex;gap:12px;flex-wrap:wrap;margin:0 0 22px}
-  table {width:100%;border-collapse:collapse} th,td {text-align:left;padding:10px;border-bottom:1px solid #e5e7eb;font-size:14px}
-  th {background:#eaf5ed} label {display:block;margin:12px 0 4px;font-weight:600}
-  input,select {box-sizing:border-box;width:100%;padding:10px;border:1px solid #b9c5c0;border-radius:6px}
-  button,.boton {display:inline-block;width:auto;padding:10px 16px;border:0;border-radius:6px;background:#087f5b;color:#fff;text-decoration:none;cursor:pointer}
-  .alerta {padding:13px;margin:14px 0;border-radius:6px;background:#fff5d7}
-  .error {background:#fee2e2} .campos {display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:12px}
-  .paginacion {display:flex;gap:15px;margin-top:15px} .ayuda {color:#52615c;font-size:14px}
-  form.linea {display:inline} form.linea button {background:#455a64;padding:6px 9px}
-</style>
-</head><body><main><nav><a th:href="@{/vecinos}">Volver a vecinos</a><form class="linea" method="post" th:action="@{/logout}"><input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"><button type="submit">Salir</button></form></nav><h1>Ficha de vecino</h1><div th:if="${mensaje}" class="alerta" th:text="${mensaje}"></div>
-<table><tr><th>Nombre</th><td th:text="${vecino.usuario.nombreCompleto}"></td></tr><tr><th>DNI</th><td th:text="${vecino.dni}"></td></tr><tr><th>Cuenta</th><td th:text="${vecino.usuario.username}"></td></tr><tr><th>Sector</th><td th:text="${vecino.sector.nombre}"></td></tr><tr><th>Dirección</th><td th:text="${vecino.direccion}"></td></tr><tr><th>Teléfono</th><td th:text="${vecino.telefono ?: '-'}"></td></tr><tr><th>Código de contribuyente</th><td th:text="${vecino.codigoContribuyente ?: '-'}"></td></tr></table><p><a class="boton" th:href="@{/vecinos/{id}/editar(id=${vecino.id})}">Editar datos de contacto</a></p>
-</main></body></html>
+<div th:replace="~{fragmentos/menu :: sidebar('vecinos')}"></div>
+
+<main class="eco-main">
+  <div class="container-fluid" style="max-width: 860px;">
+    <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-4">
+      <div>
+        <span class="eco-pill mb-2">Ficha ciudadana</span>
+        <h1 class="h3 fw-bold text-white mb-0" th:text="${vecino.usuario.nombreCompleto}">Vecino</h1>
+      </div>
+      <a class="btn btn-outline-secondary btn-sm" th:href="@{/vecinos}">
+        <i class="bi bi-arrow-left me-1"></i> Volver al listado
+      </a>
+    </div>
+
+    <div th:if="${mensaje}" class="alert alert-eco mb-3" th:text="${mensaje}"></div>
+
+    <div class="eco-card mb-4">
+      <div class="table-responsive">
+        <table class="table table-bordered align-middle">
+          <tbody>
+            <tr>
+              <th class="eco-th-label" style="width: 34%;">Nombre completo</th>
+              <td class="text-white fw-semibold" th:text="${vecino.usuario.nombreCompleto}"></td>
+            </tr>
+            <tr>
+              <th class="eco-th-label">DNI</th>
+              <td th:text="${vecino.dni}"></td>
+            </tr>
+            <tr>
+              <th class="eco-th-label">Usuario de acceso</th>
+              <td><code class="text-eco-neon" th:text="${vecino.usuario.username}"></code></td>
+            </tr>
+            <tr>
+              <th class="eco-th-label">Sector</th>
+              <td><span class="badge badge-neon" th:text="${vecino.sector.nombre}"></span></td>
+            </tr>
+            <tr>
+              <th class="eco-th-label">Dirección</th>
+              <td th:text="${vecino.direccion}"></td>
+            </tr>
+            <tr>
+              <th class="eco-th-label">Teléfono</th>
+              <td th:text="${vecino.telefono ?: '-'}"></td>
+            </tr>
+            <tr>
+              <th class="eco-th-label">Código de contribuyente</th>
+              <td th:text="${vecino.codigoContribuyente ?: '-'}"></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="d-flex flex-wrap gap-2 mt-4">
+        <a class="btn btn-eco" th:href="@{/vecinos/{id}/editar(id=${vecino.id})}">
+          <i class="bi bi-pencil-square me-1"></i> Editar datos de contacto
+        </a>
+        <a class="btn btn-outline-eco" th:href="@{/entregas/nueva(dni=${vecino.dni})}">
+          <i class="bi bi-plus-circle me-1"></i> Registrar entrega para este vecino
+        </a>
+      </div>
+    </div>
+  </div>
+</main>
+
+<div th:replace="~{fragmentos/menu :: scripts}"></div>
+</body>
+</html>

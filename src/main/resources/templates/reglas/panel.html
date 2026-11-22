@@ -1,0 +1,203 @@
+<!doctype html>
+<html lang="es" data-bs-theme="dark" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragmentos/menu :: head('Materiales y reglas de puntos')}"></head>
+<body>
+
+<div th:replace="~{fragmentos/menu :: sidebar('reglas')}"></div>
+
+<main class="eco-main">
+  <div class="container-fluid" style="max-width: 1160px;">
+    <div class="mb-4">
+      <span class="eco-pill mb-2">Parámetros del sistema</span>
+      <h1 class="h3 fw-bold text-white mb-1">Materiales y reglas de puntos</h1>
+      <p class="text-eco-muted mb-0">
+        Cada cambio de tarifa cierra la versión anterior y crea una nueva versión vigente sin alterar los cálculos históricos.
+      </p>
+    </div>
+
+    <div class="alert alert-eco mb-3" th:if="${mensaje}" th:text="${mensaje}"></div>
+    <div class="alert alert-danger mb-3" th:if="${error}" th:text="${error}"></div>
+
+    <!-- Reglas globales: REPORTE y CANJE -->
+    <div class="row g-3 mb-4">
+      <div class="col-md-6">
+        <div class="eco-card-neon h-100">
+          <div class="d-flex justify-content-between align-items-center mb-2">
+            <span class="text-eco-muted small text-uppercase fw-bold">Premio por reporte validado</span>
+            <span class="badge badge-neon">REPORTE</span>
+          </div>
+          <div class="eco-kpi-value mb-2"
+               th:text="${reglaReporte != null ? #numbers.formatDecimal(reglaReporte.valor, 1, 0) + ' pts' : 'Sin regla'}">
+            25 pts
+          </div>
+          <p class="small text-eco-muted mb-3" th:if="${reglaReporte != null}"
+             th:text="|Vigente desde ${#temporals.format(reglaReporte.fechaInicio,'dd/MM/yyyy HH:mm')} (Versión #${reglaReporte.id})|"></p>
+
+          <form method="post" th:action="@{/reglas/global/REPORTE}" class="row g-2 align-items-end">
+            <div class="col-7">
+              <label for="valorReporte" class="form-label small">Nuevo premio (entero positivo)</label>
+              <input id="valorReporte" name="valor" type="number" min="1" max="10000" step="1"
+                     class="form-control form-control-sm" required placeholder="Ej.: 30">
+            </div>
+            <div class="col-5">
+              <button type="submit" class="btn btn-eco btn-sm w-100">Nueva versión</button>
+            </div>
+          </form>
+        </div>
+      </div>
+
+      <div class="col-md-6">
+        <div class="eco-card-neon h-100">
+          <div class="d-flex justify-content-between align-items-center mb-2">
+            <span class="text-eco-muted small text-uppercase fw-bold">Equivalencia de canje</span>
+            <span class="badge badge-neon">CANJE</span>
+          </div>
+          <div class="eco-kpi-value mb-2"
+               th:text="${reglaCanje != null ? #numbers.formatDecimal(reglaCanje.valor, 1, 0) + ' pts / S/ 1.00' : 'Sin regla'}">
+            10 pts / S/ 1.00
+          </div>
+          <p class="small text-eco-muted mb-3" th:if="${reglaCanje != null}"
+             th:text="|Vigente desde ${#temporals.format(reglaCanje.fechaInicio,'dd/MM/yyyy HH:mm')} (Versión #${reglaCanje.id})|"></p>
+
+          <form method="post" th:action="@{/reglas/global/CANJE}" class="row g-2 align-items-end">
+            <div class="col-7">
+              <label for="valorCanje" class="form-label small">Puntos por S/ 1.00 (entero)</label>
+              <input id="valorCanje" name="valor" type="number" min="1" max="10000" step="1"
+                     class="form-control form-control-sm" required placeholder="Ej.: 20">
+            </div>
+            <div class="col-5">
+              <button type="submit" class="btn btn-eco btn-sm w-100">Nueva versión</button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+
+    <!-- Catálogo de materiales y sus tarifas de reciclaje -->
+    <div class="eco-card mb-4">
+      <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-3">
+        <h2 class="h5 fw-bold text-white mb-0">Materiales reciclables y tarifas vigentes</h2>
+        <span class="badge bg-dark border border-secondary text-light" th:text="|${#lists.size(materiales)} materiales|"></span>
+      </div>
+
+      <div class="table-responsive">
+        <table class="table table-hover align-middle">
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>Material</th>
+              <th>Estado</th>
+              <th>Tarifa vigente</th>
+              <th style="min-width: 240px;">Actualizar tarifa (pts/kg)</th>
+              <th class="text-end">Disponibilidad</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr th:each="item : ${materiales}">
+              <td class="text-eco-muted" th:text="${item.material.id}"></td>
+              <td class="fw-semibold text-white" th:text="${item.material.nombre}"></td>
+              <td>
+                <span th:class="${item.material.activo ? 'badge badge-neon' : 'badge text-bg-secondary'}"
+                      th:text="${item.material.activo ? 'Activo' : 'Inactivo'}"></span>
+              </td>
+              <td>
+                <span class="fw-bold text-eco-neon" th:if="${item.reglaVigente != null}"
+                      th:text="|${item.reglaVigente.valor} pts/kg|"></span>
+                <span class="text-danger small" th:if="${item.reglaVigente == null}">Sin tarifa</span>
+                <div class="small text-eco-muted" th:if="${item.reglaVigente != null}"
+                     th:text="|Versión #${item.reglaVigente.id}|"></div>
+              </td>
+              <td>
+                <form method="post" th:action="@{/reglas/reciclaje/{id}(id=${item.material.id})}"
+                      class="d-flex gap-2 align-items-center">
+                  <input type="number" name="valor" step="0.01" min="0.01" max="10000"
+                         class="form-control form-control-sm" style="max-width: 120px;"
+                         required placeholder="Nuevo valor">
+                  <button type="submit" class="btn btn-outline-eco btn-sm text-nowrap">Guardar</button>
+                </form>
+              </td>
+              <td class="text-end">
+                <form method="post" th:action="@{/reglas/materiales/{id}/estado(id=${item.material.id})}" class="d-inline">
+                  <input type="hidden" name="activo" th:value="${!item.material.activo}">
+                  <button type="submit"
+                          th:class="${item.material.activo ? 'btn btn-sm btn-outline-danger' : 'btn btn-sm btn-outline-eco'}"
+                          th:text="${item.material.activo ? 'Desactivar' : 'Activar'}"></button>
+                </form>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Formulario para agregar nuevo material -->
+    <div class="eco-card-neon mb-4">
+      <h2 class="h6 text-eco-neon text-uppercase fw-bold mb-3">
+        <i class="bi bi-plus-circle me-1"></i> Registrar nuevo material reciclable
+      </h2>
+      <form method="post" th:action="@{/reglas/materiales/nuevo}" class="row g-3 align-items-end">
+        <div class="col-md-5">
+          <label for="nombreMaterial" class="form-label">Nombre del material</label>
+          <input id="nombreMaterial" name="nombre" class="form-control" maxlength="40" required
+                 placeholder="Ej.: Tetra Pak">
+        </div>
+        <div class="col-md-4">
+          <label for="tarifaInicial" class="form-label">Tarifa inicial (puntos por kg)</label>
+          <input id="tarifaInicial" name="valor" type="number" step="0.01" min="0.01" max="10000"
+                 class="form-control" required placeholder="Ej.: 6.00">
+        </div>
+        <div class="col-md-3">
+          <button type="submit" class="btn btn-eco w-100">
+            <i class="bi bi-check-lg me-1"></i> Crear material
+          </button>
+        </div>
+      </form>
+    </div>
+
+    <!-- Historial completo de versiones de reglas -->
+    <div class="eco-card">
+      <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-3">
+        <div>
+          <h2 class="h5 fw-bold text-white mb-0">Historial de versiones de reglas</h2>
+          <p class="text-eco-muted small mb-0">Trazabilidad completa de tarifas vigentes y cerradas.</p>
+        </div>
+        <span class="badge bg-dark border border-secondary text-light" th:text="|${#lists.size(historial)} versiones|"></span>
+      </div>
+
+      <div class="table-responsive">
+        <table class="table table-sm table-hover align-middle">
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>Concepto</th>
+              <th>Material</th>
+              <th class="text-end">Valor</th>
+              <th>Estado</th>
+              <th>Inicio de vigencia</th>
+              <th>Fin de vigencia</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr th:each="r : ${historial}">
+              <td class="text-eco-muted" th:text="${r.id}"></td>
+              <td><span class="badge bg-dark border border-secondary text-light" th:text="${r.concepto}"></span></td>
+              <td class="text-white" th:text="${r.material != null ? r.material.nombre : 'Global'}"></td>
+              <td class="text-end fw-semibold text-eco-neon" th:text="${r.valor}"></td>
+              <td>
+                <span th:class="${r.vigente ? 'badge badge-neon' : 'badge text-bg-secondary'}"
+                      th:text="${r.vigente ? 'Vigente' : 'Cerrada'}"></span>
+              </td>
+              <td th:text="${#temporals.format(r.fechaInicio,'dd/MM/yyyy HH:mm')}"></td>
+              <td class="text-eco-muted"
+                  th:text="${r.fechaFin != null ? #temporals.format(r.fechaFin,'dd/MM/yyyy HH:mm') : '—'}"></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</main>
+
+<div th:replace="~{fragmentos/menu :: scripts}"></div>
+</body>
+</html>

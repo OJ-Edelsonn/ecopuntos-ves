@@ -6,4 +6,6 @@ import pe.ecopuntosves.model.TipoMaterial;
 
 public interface TipoMaterialRepository extends JpaRepository<TipoMaterial, Integer> {
     List<TipoMaterial> findByActivoTrueOrderByNombreAsc();
+    List<TipoMaterial> findAllByOrderByNombreAsc();
+    boolean existsByNombreIgnoreCase(String nombre);
 }

@@ -1,75 +1,100 @@
-<!DOCTYPE html>
-<html lang="es" xmlns:th="http://www.thymeleaf.org">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title th:text="${nombreSistema}">EcoPuntos VES</title>
-    <link rel="stylesheet" th:href="@{/css/estilos.css}">
-</head>
+<!doctype html>
+<html lang="es"
+      data-bs-theme="dark"
+      xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head th:replace="~{fragmentos/menu :: head('Inicio')}"></head>
 <body>
 
-<header class="cabecera">
-    <div class="contenedor barra">
-        <span class="marca" th:text="${nombreSistema}">EcoPuntos VES</span>
-        <span class="etiqueta">Proyecto académico</span>
-    </div>
-</header>
+<div th:replace="~{fragmentos/menu :: sidebar('inicio')}"></div>
 
-<main class="contenedor">
-    <section class="presentacion">
-        <p class="ubicacion">Villa El Salvador · Lima</p>
+<main class="eco-main">
+  <div class="container-fluid" style="max-width: 1120px;">
+    <div th:if="${mensaje}" class="alert alert-eco mb-4" th:text="${mensaje}"></div>
 
-        <h1>Participación vecinal con información organizada.</h1>
+    <section class="eco-hero mb-4">
+      <span class="eco-pill mb-3"><i class="bi bi-geo-alt-fill"></i> Villa El Salvador · Lima</span>
+      <h1 class="display-6 fw-bold text-white mb-3">
+        Participación vecinal con <span class="text-eco-neon">información trazable</span>.
+      </h1>
+      <p class="text-secondary fs-5 mb-4" style="max-width: 720px;">
+        Plataforma integral para el acopio de reciclables, seguimiento de puntos críticos con cuadrillas
+        municipales y administración de incentivos vecinales.
+      </p>
 
-        <p class="descripcion">
-            Registro de reciclables, seguimiento de puntos críticos
-            y administración de incentivos vecinales.
-        </p>
-
-        <p class="aviso">
-            Prototipo en desarrollo. Las operaciones y los beneficios
-            se demostrarán con datos ficticios.
-        </p>
+      <div class="d-flex flex-wrap gap-2">
+        <a sec:authorize="isAnonymous()" class="btn btn-eco px-4 py-2" th:href="@{/login}">
+          <i class="bi bi-box-arrow-in-right me-1"></i> Iniciar sesión
+        </a>
+        <a sec:authorize="hasRole('VECINO')" class="btn btn-eco px-4 py-2" th:href="@{/canjes}">
+          <i class="bi bi-ticket-perforated me-1"></i> Ver mi saldo y canjes
+        </a>
+        <a sec:authorize="hasAnyRole('OPERADOR','ADMINISTRADOR')" class="btn btn-eco px-4 py-2" th:href="@{/entregas/nueva}">
+          <i class="bi bi-plus-circle me-1"></i> Registrar entrega
+        </a>
+        <a sec:authorize="hasRole('FUNCIONARIO')" class="btn btn-eco px-4 py-2" th:href="@{/puntos-criticos}">
+          <i class="bi bi-exclamation-triangle me-1"></i> Gestionar puntos críticos
+        </a>
+        <a class="btn btn-outline-eco px-4 py-2" th:href="@{/materiales}">
+          <i class="bi bi-box-seam me-1"></i> Ver materiales aceptados
+        </a>
+      </div>
     </section>
 
     <section aria-labelledby="titulo-procesos">
-        <h2 id="titulo-procesos">Procesos del proyecto</h2>
+      <div class="d-flex align-items-center justify-content-between mb-3">
+        <h2 id="titulo-procesos" class="h5 fw-bold text-white mb-0">Módulos principales</h2>
+        <span class="badge badge-neon">Gestión integral</span>
+      </div>
 
-        <div class="tarjetas">
-            <article class="tarjeta">
-                <span class="numero">01</span>
-                <h3>Recepción de reciclables</h3>
-                <p>
-                    Registro de entregas por vecino y material,
-                    con cálculo de puntos según el peso recibido.
-                </p>
-            </article>
-
-            <article class="tarjeta">
-                <span class="numero">02</span>
-                <h3>Atención de puntos críticos</h3>
-                <p>
-                    Registro, revisión y seguimiento de reportes
-                    de acumulación de residuos.
-                </p>
-            </article>
-
-            <article class="tarjeta">
-                <span class="numero">03</span>
-                <h3>Canje de puntos</h3>
-                <p>
-                    Consulta del saldo y emisión de constancias
-                    de beneficios simulados.
-                </p>
-            </article>
+      <div class="row g-3">
+        <div class="col-md-4">
+          <article class="eco-kpi-card">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+              <span class="badge badge-neon">01</span>
+              <i class="bi bi-recycle text-eco-neon fs-4"></i>
+            </div>
+            <h3 class="h5 fw-bold text-white">Recepción de reciclables</h3>
+            <p class="text-eco-muted small mb-0">
+              Registro de entregas por vecino y material con cálculo automático de puntos según las tarifas vigentes.
+            </p>
+          </article>
         </div>
+
+        <div class="col-md-4">
+          <article class="eco-kpi-card">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+              <span class="badge badge-neon">02</span>
+              <i class="bi bi-geo-alt text-eco-neon fs-4"></i>
+            </div>
+            <h3 class="h5 fw-bold text-white">Atención de puntos críticos</h3>
+            <p class="text-eco-muted small mb-0">
+              Reporte ciudadano con evidencia fotográfica, validación municipal, asignación de cuadrillas y cierre documentado.
+            </p>
+          </article>
+        </div>
+
+        <div class="col-md-4">
+          <article class="eco-kpi-card">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+              <span class="badge badge-neon">03</span>
+              <i class="bi bi-ticket-perforated text-eco-neon fs-4"></i>
+            </div>
+            <h3 class="h5 fw-bold text-white">Canje de puntos</h3>
+            <p class="text-eco-muted small mb-0">
+              Consulta de saldo en tiempo real y emisión de constancias de descuento en arbitrios.
+            </p>
+          </article>
+        </div>
+      </div>
     </section>
+
+    <footer class="text-eco-muted small border-top border-secondary-subtle mt-5 pt-3">
+      <p class="mb-0">EcoPuntos VES · Sistema de Reciclaje y Participación Vecinal · Villa El Salvador</p>
+    </footer>
+  </div>
 </main>
 
-<footer class="contenedor pie">
-    <p>EcoPuntos VES · Lenguajes de Programación II</p>
-    <p>Los beneficios simulados no tienen validez para el pago de arbitrios.</p>
-</footer>
-
+<div th:replace="~{fragmentos/menu :: scripts}"></div>
 </body>
 </html>

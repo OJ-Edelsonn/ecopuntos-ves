@@ -3,6 +3,7 @@ package pe.ecopuntosves.config;
 import org.springframework.boot.web.servlet.FilterRegistrationBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.core.userdetails.UserDetailsService;
@@ -13,6 +14,7 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 
 @Configuration
 public class SecurityConfig {
+
     // Evita que Spring Boot ejecute el filtro fuera de la cadena Spring Security.
     @Bean
     public FilterRegistrationBean<CambioClavePendienteFilter> deshabilitarRegistroServlet(
@@ -23,7 +25,9 @@ public class SecurityConfig {
     }
 
     @Bean
-    public PasswordEncoder passwordEncoder() { return new BCryptPasswordEncoder(); }
+    public PasswordEncoder passwordEncoder() {
+        return new BCryptPasswordEncoder();
+    }
 
     @Bean
     public DaoAuthenticationProvider daoAuthenticationProvider(UserDetailsService userDetailsService,
@@ -37,74 +41,78 @@ public class SecurityConfig {
     public SecurityFilterChain filterChain(HttpSecurity http, CambioClavePendienteFilter filtro,
                                            DaoAuthenticationProvider provider) throws Exception {
         http.authenticationProvider(provider)
-        .authorizeHttpRequests(auth -> auth
-        	    .requestMatchers("/", "/css/**", "/materiales", "/materiales/**").permitAll()
-        	    .requestMatchers("/vecinos", "/vecinos/**").hasAnyRole("OPERADOR", "ADMINISTRADOR")
-        	    .requestMatchers("/usuarios", "/usuarios/**").hasRole("ADMINISTRADOR")
-        	    .requestMatchers("/mi-perfil").hasRole("VECINO")
-        	    .requestMatchers("/cambiar-clave").authenticated()
+            .authorizeHttpRequests(auth -> auth
+                .requestMatchers("/", "/login", "/error", "/css/**", "/favicon.ico", "/materiales")
+                    .permitAll()
 
-        	    // Módulo 03: Entregas
-        	    .requestMatchers("/entregas", "/entregas/**")
-        	        .hasAnyRole("OPERADOR", "ADMINISTRADOR")
-        	    .requestMatchers("/mis-entregas")
-        	        .hasRole("VECINO")
-        	        
-        	     // Módulo 04: Gestión de puntos críticos
-        	        .requestMatchers(
-        	            org.springframework.http.HttpMethod.POST,
-        	            "/puntos-criticos/*/decidir",
-        	            "/puntos-criticos/*/iniciar-atencion",
-        	            "/puntos-criticos/*/resolver"
-        	        ).hasRole("FUNCIONARIO")
+                // Módulo 01: Administración de materiales y reglas versionadas
+                .requestMatchers("/reglas", "/reglas/**")
+                    .hasRole("ADMINISTRADOR")
 
-        	        .requestMatchers(
-        	            "/puntos-criticos/nuevo",
-        	            "/puntos-criticos/mis-reportes"
-        	        ).hasRole("VECINO")
+                // Módulo 02: Cuentas y vecinos
+                .requestMatchers("/vecinos", "/vecinos/**")
+                    .hasAnyRole("OPERADOR", "ADMINISTRADOR")
+                .requestMatchers("/usuarios", "/usuarios/**")
+                    .hasRole("ADMINISTRADOR")
+                .requestMatchers("/mi-perfil")
+                    .hasRole("VECINO")
+                .requestMatchers("/cambiar-clave")
+                    .authenticated()
 
-        	        .requestMatchers(
-        	            "/puntos-criticos",
-        	            "/puntos-criticos/**"
-        	        ).hasAnyRole("VECINO", "FUNCIONARIO", "ADMINISTRADOR")
-        	        
-        	     // Módulo 05: Canjes
-        	        .requestMatchers(
-        	            org.springframework.http.HttpMethod.POST,
-        	            "/canjes/*/anular"
-        	        ).hasRole("FUNCIONARIO")
+                // Módulo 03: Entregas e historial de puntos
+                .requestMatchers("/entregas", "/entregas/**")
+                    .hasAnyRole("OPERADOR", "ADMINISTRADOR")
+                .requestMatchers("/mis-entregas", "/mis-entregas/**", "/mis-puntos")
+                    .hasRole("VECINO")
 
-        	        .requestMatchers(
-        	            org.springframework.http.HttpMethod.POST,
-        	            "/canjes/emitir"
-        	        ).hasRole("VECINO")
+                // Módulo 04: Gestión de puntos críticos
+                .requestMatchers(
+                    HttpMethod.POST,
+                    "/puntos-criticos/*/decidir",
+                    "/puntos-criticos/*/iniciar-atencion",
+                    "/puntos-criticos/*/resolver"
+                ).hasRole("FUNCIONARIO")
+                .requestMatchers(
+                    "/puntos-criticos/nuevo",
+                    "/puntos-criticos/mis-reportes"
+                ).hasRole("VECINO")
+                .requestMatchers("/puntos-criticos", "/puntos-criticos/**")
+                    .hasAnyRole("VECINO", "FUNCIONARIO", "ADMINISTRADOR")
 
-        	        .requestMatchers("/canjes/administrar")
-        	            .hasRole("FUNCIONARIO")
+                // Módulo 05: Canjes
+                .requestMatchers(HttpMethod.POST, "/canjes/*/anular")
+                    .hasRole("FUNCIONARIO")
+                .requestMatchers(HttpMethod.POST, "/canjes/emitir")
+                    .hasRole("VECINO")
+                .requestMatchers("/canjes/administrar")
+                    .hasRole("FUNCIONARIO")
+                .requestMatchers("/canjes")
+                    .hasRole("VECINO")
+                .requestMatchers("/canjes/**")
+                    .hasAnyRole("VECINO", "FUNCIONARIO")
 
-        	        .requestMatchers("/canjes")
-        	            .hasRole("VECINO")
+                // Módulo 06: Reportes y estadísticas
+                .requestMatchers("/reportes", "/reportes/**")
+                    .hasAnyRole("FUNCIONARIO", "ADMINISTRADOR")
 
-        	        .requestMatchers("/canjes/**")
-        	            .hasAnyRole("VECINO", "FUNCIONARIO")
-        	        
-        	         // Módulo 06: Reportes y estadísticas
-        	            .requestMatchers("/reportes", "/reportes/**")
-        	                .hasAnyRole("FUNCIONARIO", "ADMINISTRADOR")
-        	            
-        	             // Consolidación 03: Cuadrillas municipales
-        	                .requestMatchers(
-        	                    org.springframework.http.HttpMethod.POST,
-        	                    "/cuadrillas/**"
-        	                ).hasRole("ADMINISTRADOR")
+                // Consolidación 03: Cuadrillas municipales
+                .requestMatchers(HttpMethod.POST, "/cuadrillas/**")
+                    .hasRole("ADMINISTRADOR")
+                .requestMatchers("/cuadrillas", "/cuadrillas/**")
+                    .hasAnyRole("FUNCIONARIO", "ADMINISTRADOR")
 
-        	                .requestMatchers("/cuadrillas", "/cuadrillas/**")
-        	                    .hasAnyRole("FUNCIONARIO", "ADMINISTRADOR")       
-        	                
-        	    .anyRequest().authenticated()
-        	)
-            .formLogin(form -> form.defaultSuccessUrl("/", false).permitAll())
-            .logout(logout -> logout.logoutSuccessUrl("/"));
+                .anyRequest().authenticated()
+            )
+            .formLogin(form -> form
+                .loginPage("/login")
+                .defaultSuccessUrl("/", false)
+                .permitAll()
+            )
+            .logout(logout -> logout
+                .logoutSuccessUrl("/login?logout")
+                .permitAll()
+            );
+
         http.addFilterAfter(filtro, UsernamePasswordAuthenticationFilter.class);
         return http.build();
     }

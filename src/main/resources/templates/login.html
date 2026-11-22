@@ -1,0 +1,89 @@
+<!doctype html>
+<html lang="es" data-bs-theme="dark" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragmentos/menu :: head('Iniciar sesión')}"></head>
+<body class="eco-login-page">
+
+<header class="container py-3 d-flex justify-content-between align-items-center">
+  <a class="d-flex align-items-center gap-2 text-white fw-bold" th:href="@{/}">
+    <span class="eco-brand-badge"><i class="bi bi-recycle"></i></span>
+    <span>EcoPuntos VES</span>
+  </a>
+  <a class="btn btn-outline-secondary btn-sm" th:href="@{/}">
+    <i class="bi bi-arrow-left me-1"></i> Volver al inicio
+  </a>
+</header>
+
+<main class="container my-auto py-4" style="max-width: 440px;">
+  <div class="eco-login-card p-4 p-md-5">
+    <div class="text-center mb-4">
+      <span class="eco-pill mb-3"><i class="bi bi-shield-check"></i> Acceso al sistema</span>
+      <h1 class="h3 fw-bold text-white mb-1">Iniciar sesión</h1>
+      <p class="text-eco-muted small mb-0">Villa El Salvador · Gestión de reciclaje y puntos críticos</p>
+    </div>
+
+    <div th:if="${param.error}" class="alert alert-danger py-2 small" role="alert">
+      <i class="bi bi-exclamation-circle me-1"></i>
+      Usuario o contraseña incorrectos, o cuenta desactivada.
+    </div>
+    <div th:if="${param.logout}" class="alert alert-eco py-2 small" role="alert">
+      <i class="bi bi-check-circle me-1"></i>
+      Has cerrado sesión correctamente.
+    </div>
+
+    <form th:action="@{/login}" method="post">
+      <div class="mb-3">
+        <label for="username" class="form-label">Usuario</label>
+        <div class="input-group">
+          <span class="input-group-text bg-dark border-secondary-subtle text-eco-muted">
+            <i class="bi bi-person"></i>
+          </span>
+          <input type="text" id="username" name="username" class="form-control"
+                 required autofocus autocomplete="username" placeholder="Ingresa tu usuario">
+        </div>
+      </div>
+
+      <div class="mb-4">
+        <label for="password" class="form-label">Contraseña</label>
+        <div class="input-group">
+          <span class="input-group-text bg-dark border-secondary-subtle text-eco-muted">
+            <i class="bi bi-lock"></i>
+          </span>
+          <input type="password" id="password" name="password" class="form-control"
+                 required autocomplete="current-password" placeholder="Ingresa tu contraseña">
+          <button class="btn btn-outline-secondary" type="button" id="btnVerClave" aria-label="Mostrar contraseña">
+            <i class="bi bi-eye" id="iconoClave"></i>
+          </button>
+        </div>
+      </div>
+
+      <button type="submit" class="btn btn-eco w-100 py-2">
+        Ingresar al sistema <i class="bi bi-arrow-right ms-1"></i>
+      </button>
+    </form>
+
+    <p class="text-eco-muted small text-center mt-4 mb-0">
+      Si ingresas con una clave temporal, deberás cambiarla antes de continuar.
+    </p>
+  </div>
+</main>
+
+<footer class="container text-center text-eco-muted small py-3">
+  EcoPuntos VES · Villa El Salvador
+</footer>
+
+<script>
+(function () {
+  const btn = document.getElementById('btnVerClave');
+  const input = document.getElementById('password');
+  const icono = document.getElementById('iconoClave');
+  if (!btn || !input || !icono) return;
+  btn.addEventListener('click', function () {
+    const oculto = input.type === 'password';
+    input.type = oculto ? 'text' : 'password';
+    icono.className = oculto ? 'bi bi-eye-slash' : 'bi bi-eye';
+  });
+}());
+</script>
+<div th:replace="~{fragmentos/menu :: scripts}"></div>
+</body>
+</html>

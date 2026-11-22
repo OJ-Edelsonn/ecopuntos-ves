@@ -16,14 +16,18 @@ public class TipoMaterial {
     @Column(name = "id_tipo_material")
     private Integer id;
 
-    @Column(name = "nombre", nullable = false, length = 40)
+    @Column(name = "nombre", nullable = false, unique = true, length = 40)
     private String nombre;
 
     @Column(name = "activo", nullable = false)
-    private boolean activo;
+    private boolean activo = true;
 
     protected TipoMaterial() {
-        // Constructor requerido por JPA.
+    }
+
+    public TipoMaterial(String nombre) {
+        this.nombre = nombre;
+        this.activo = true;
     }
 
     public Integer getId() {
@@ -36,5 +40,9 @@ public class TipoMaterial {
 
     public boolean isActivo() {
         return activo;
+    }
+
+    public void setActivo(boolean activo) {
+        this.activo = activo;
     }
 }

@@ -1,0 +1,60 @@
+<!doctype html>
+<html lang="es" data-bs-theme="dark" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragmentos/menu :: head('Editar personal')}"></head>
+<body>
+
+<div th:replace="~{fragmentos/menu :: sidebar('usuarios')}"></div>
+
+<main class="eco-main">
+  <div class="container-fluid" style="max-width: 820px;">
+    <div class="mb-4">
+      <h1 class="h3 fw-bold text-white mb-1">Editar cuenta de personal</h1>
+      <p class="text-eco-muted mb-0">
+        Usuario: <code class="text-eco-neon" th:text="${usuario.username}"></code>
+      </p>
+    </div>
+
+    <div th:if="${error}" class="alert alert-danger mb-3" th:text="${error}"></div>
+
+    <div class="eco-card">
+      <form th:action="@{/usuarios/{id}/editar(id=${usuario.id})}" th:object="${form}" method="post" class="row g-3">
+        <div class="col-md-6">
+          <label for="nombres" class="form-label">Nombres</label>
+          <input id="nombres" class="form-control" th:field="*{nombres}" required maxlength="80">
+        </div>
+        <div class="col-md-6">
+          <label for="apellidos" class="form-label">Apellidos</label>
+          <input id="apellidos" class="form-control" th:field="*{apellidos}" required maxlength="80">
+        </div>
+        <div class="col-md-6">
+          <label for="correo" class="form-label">Correo electrónico (opcional)</label>
+          <input id="correo" type="email" class="form-control" th:field="*{correo}" maxlength="100"
+                 placeholder="nombre@ejemplo.pe">
+        </div>
+        <div class="col-md-6" th:if="${usuario.rol.nombre != 'ADMINISTRADOR'}">
+          <label for="rol" class="form-label">Rol</label>
+          <select id="rol" class="form-select" th:field="*{rol}" required>
+            <option value="OPERADOR">Operador</option>
+            <option value="FUNCIONARIO">Funcionario municipal</option>
+          </select>
+        </div>
+        <div class="col-md-6" th:if="${usuario.rol.nombre == 'ADMINISTRADOR'}">
+          <label class="form-label">Rol</label>
+          <input type="text" class="form-control" value="ADMINISTRADOR" disabled>
+          <input type="hidden" th:field="*{rol}">
+        </div>
+
+        <div class="col-12 d-flex gap-2 mt-3 pt-3 border-top border-secondary-subtle">
+          <button type="submit" class="btn btn-eco">
+            <i class="bi bi-check-lg me-1"></i> Guardar cambios
+          </button>
+          <a class="btn btn-outline-secondary" th:href="@{/usuarios}">Cancelar</a>
+        </div>
+      </form>
+    </div>
+  </div>
+</main>
+
+<div th:replace="~{fragmentos/menu :: scripts}"></div>
+</body>
+</html>

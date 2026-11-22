@@ -1,19 +1,55 @@
-<!doctype html><html lang="es" xmlns:th="http://www.thymeleaf.org"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Editar vecino | EcoPuntos VES</title>
+<!doctype html>
+<html lang="es" data-bs-theme="dark" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragmentos/menu :: head('Editar vecino')}"></head>
+<body>
 
-<style>
-  :root {font-family:Arial,sans-serif;color:#1f2937;background:#f4f7f6}
-  body {margin:0} main {max-width:1050px;margin:25px auto;padding:24px;background:white;border-radius:12px;box-shadow:0 2px 14px #0001}
-  h1 {font-size:1.6rem;margin-top:0} h2 {font-size:1.1rem}
-  a {color:#087f5b} nav {display:flex;gap:12px;flex-wrap:wrap;margin:0 0 22px}
-  table {width:100%;border-collapse:collapse} th,td {text-align:left;padding:10px;border-bottom:1px solid #e5e7eb;font-size:14px}
-  th {background:#eaf5ed} label {display:block;margin:12px 0 4px;font-weight:600}
-  input,select {box-sizing:border-box;width:100%;padding:10px;border:1px solid #b9c5c0;border-radius:6px}
-  button,.boton {display:inline-block;width:auto;padding:10px 16px;border:0;border-radius:6px;background:#087f5b;color:#fff;text-decoration:none;cursor:pointer}
-  .alerta {padding:13px;margin:14px 0;border-radius:6px;background:#fff5d7}
-  .error {background:#fee2e2} .campos {display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:12px}
-  .paginacion {display:flex;gap:15px;margin-top:15px} .ayuda {color:#52615c;font-size:14px}
-  form.linea {display:inline} form.linea button {background:#455a64;padding:6px 9px}
-</style>
-</head><body><main><nav><a th:href="@{/vecinos/{id}(id=${vecino.id})}">Volver a la ficha</a><form class="linea" method="post" th:action="@{/logout}"><input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"><button type="submit">Salir</button></form></nav><h1>Editar datos de contacto</h1><p th:text="${vecino.usuario.nombreCompleto}"></p><div th:if="${error}" class="alerta error" th:text="${error}"></div>
-<form th:action="@{/vecinos/{id}/editar(id=${vecino.id})}" th:object="${form}" method="post"><input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"><div class="campos"><div><label>Dirección</label><input th:field="*{direccion}" maxlength="150" required></div><div><label>Teléfono</label><input th:field="*{telefono}" maxlength="15"></div><div><label>Código de contribuyente</label><input th:field="*{codigoContribuyente}" maxlength="20"></div><div><label>Sector</label><select th:field="*{sectorId}" required><option value="">Seleccionar</option><option th:each="s:${sectores}" th:value="${s.id}" th:text="${s.nombre}"></option></select></div></div><p><button type="submit">Guardar cambios</button></p></form>
-</main></body></html>
+<div th:replace="~{fragmentos/menu :: sidebar('vecinos')}"></div>
+
+<main class="eco-main">
+  <div class="container-fluid" style="max-width: 860px;">
+    <div class="mb-4">
+      <h1 class="h3 fw-bold text-white mb-1">Editar datos de contacto</h1>
+      <p class="text-eco-muted mb-0">
+        <strong class="text-white" th:text="${vecino.usuario.nombreCompleto}"></strong>
+        &nbsp;·&nbsp; DNI <span th:text="${vecino.dni}"></span>
+      </p>
+    </div>
+
+    <div th:if="${error}" class="alert alert-danger mb-3" th:text="${error}"></div>
+
+    <div class="eco-card">
+      <form th:action="@{/vecinos/{id}/editar(id=${vecino.id})}" th:object="${form}" method="post" class="row g-3">
+        <div class="col-md-8">
+          <label for="direccion" class="form-label">Dirección</label>
+          <input id="direccion" class="form-control" th:field="*{direccion}" maxlength="150" required>
+        </div>
+        <div class="col-md-4">
+          <label for="sectorId" class="form-label">Sector</label>
+          <select id="sectorId" class="form-select" th:field="*{sectorId}" required>
+            <option value="">Seleccionar sector...</option>
+            <option th:each="s : ${sectores}" th:value="${s.id}" th:text="${s.nombre}"></option>
+          </select>
+        </div>
+        <div class="col-md-6">
+          <label for="telefono" class="form-label">Teléfono (opcional)</label>
+          <input id="telefono" class="form-control" th:field="*{telefono}" maxlength="15" inputmode="tel">
+        </div>
+        <div class="col-md-6">
+          <label for="codigoContribuyente" class="form-label">Código de contribuyente</label>
+          <input id="codigoContribuyente" class="form-control" th:field="*{codigoContribuyente}" maxlength="20">
+        </div>
+
+        <div class="col-12 d-flex gap-2 mt-3 pt-3 border-top border-secondary-subtle">
+          <button type="submit" class="btn btn-eco">
+            <i class="bi bi-check-lg me-1"></i> Guardar cambios
+          </button>
+          <a class="btn btn-outline-secondary" th:href="@{/vecinos/{id}(id=${vecino.id})}">Cancelar</a>
+        </div>
+      </form>
+    </div>
+  </div>
+</main>
+
+<div th:replace="~{fragmentos/menu :: scripts}"></div>
+</body>
+</html>
